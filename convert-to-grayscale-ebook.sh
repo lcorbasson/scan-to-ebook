@@ -7,23 +7,25 @@ if [ $# -lt 1 ]; then
 fi
 book="$1"
 
-TMPDIR="$(mktemp -d "${0##*/}.XXXXXX")"
-
 for f in "$book "*".pdf"; do
 	if [ "${f%.ebook.pdf}" != "$f" ]; then
 		continue
 	fi
 
+	# Extract the part number from the file name
 	part="${f#$book }"
 	part="${part%.pdf}"
 	part="${part%% - *}"
 	part="${part%% – *}"
 
+	# Create a temp dir
+	tmpdir="$(mktemp -d "${0##*/}.$book$part.XXXXXX")"
+
 	# Extract the scans
-	pdfimages -all "$f" "$TMPDIR/$book$part"
+	pdfimages -all "$f" "$tmpdir/$book$part"
 
 	# Generate the output pages
-	pushd "$TMPDIR" > /dev/null
+	pushd "$tmpdir" > /dev/null
 	pages=()
 	for i in "$book$part"*".jpg"; do
 
@@ -74,11 +76,11 @@ for f in "$book "*".pdf"; do
 	popd > /dev/null
 
 	# Save the resulting files
-	mv "$TMPDIR/$book$part.ebook.pdf" "${f%.pdf}.ebook.pdf"
-#	mv "$TMPDIR/$book$part.cbz" "${f%.pdf}.ebook.cbz"
-#	mv "$TMPDIR/$book$part.epub" "${f%.pdf}.ebook.epub"
-done
+	mv "$tmpdir/$book$part.ebook.pdf" "${f%.pdf}.ebook.pdf"
+#	mv "$tmpdir/$book$part.cbz" "${f%.pdf}.ebook.cbz"
+#	mv "$tmpdir/$book$part.epub" "${f%.pdf}.ebook.epub"
 
-# Cleanup
-rm -r "$TMPDIR"
+	# Cleanup
+	rm -r "$tmpdir"
+done
 
