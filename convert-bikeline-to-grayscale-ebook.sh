@@ -45,6 +45,7 @@ for f in "$book "*".pdf"; do
 #			it="${i%.jpg}_$t.jpg"
 #			gm convert "$i" -crop "${tw}x100%" "$it"
 #			mogrify -rotate 90 "$it"
+#			jpegoptim -s "$it"
 #		done
 
 		# Adapt the pages to the e-book screens by cutting pages in two
@@ -54,7 +55,7 @@ for f in "$book "*".pdf"; do
 		convert "$i" -gravity East -crop 70%x100%+0+0 "$ir"
 
 		# Optimize JPEGs
-		jpegoptim -s "$il" "$ir"
+		jpegoptim -s "$i" "$il" "$ir"
 
 		# Add them to the output pages
 		pages+=("$il" "$ir")
