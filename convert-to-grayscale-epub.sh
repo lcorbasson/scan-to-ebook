@@ -53,7 +53,8 @@ for f in "$book "*".pdf"; do
 	# Generate a grayscale PDF version
 	img2pdf --output "$book$part.pdf" "${pages[@]}"
 	# OCR it
-	ocrmypdf --language deu --output-type pdf --sidecar --deskew --clean "$book$part.pdf" "$book$part.pdf"
+	ocrmypdf --language deu+fra+nld+eng --output-type pdf --sidecar --deskew --clean "$book$part.pdf" "$book$part.ocr.pdf"
+	ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$book$part.ebook.pdf" "$book$part.ocr.pdf"
 
 	# Generate an EPUB version via Markdown
 #	for i in "${pages[@]}"; do
@@ -68,7 +69,7 @@ for f in "$book "*".pdf"; do
 	popd > /dev/null
 
 	# Save the resulting files
-	mv "$TMPDIR/$book$part.pdf" "${f%.pdf}.ebook.pdf"
+	mv "$TMPDIR/$book$part.ebook.pdf" "${f%.pdf}.ebook.pdf"
 #	mv "$TMPDIR/$book$part.cbz" "${f%.pdf}.ebook.cbz"
 #	mv "$TMPDIR/$book$part.epub" "${f%.pdf}.ebook.epub"
 done
