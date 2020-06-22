@@ -53,6 +53,9 @@ for f in "$book "*".pdf"; do
 		convert "$i" -gravity West -crop 70%x100%+0+0 "$il"
 		convert "$i" -gravity East -crop 70%x100%+0+0 "$ir"
 
+		# Optimize JPEGs
+		jpegoptim -s "$il" "$ir"
+
 		# Add them to the output pages
 		pages+=("$il" "$ir")
 	done
