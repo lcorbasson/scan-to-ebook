@@ -11,6 +11,7 @@ for f in "$book "*".pdf"; do
 	part="${part%% - *}"
 	pdfimages -all "$f" "$TMPDIR/$book$part"
 	pushd "$TMPDIR" > /dev/null
+	pages=()
 	for i in "$book$part"*".jpg"; do
 		mogrify -colorspace Gray -rotate 270 "$i"
 		il="${i%.jpg}_l.jpg"
@@ -19,11 +20,14 @@ for f in "$book "*".pdf"; do
 		convert "$i" -gravity East -crop 70%x100%+0+0 "$ir"
 		mogrify -rotate 90 "$il"
 		mogrify -rotate 90 "$ir"
-#		echo "![$il]($il)" >> "$book$part.md"
-#		echo "![$ir]($ir)" >> "$book$part.md"
+		pages+=("$il" "$ir")
 	done
+	img2pdf -o "$book$part.pdf" "${pages[@]}"
+	for i in "${pages[@]}"; do
+		echo "![$i]($i)"
+	done > "$book$part.md"
 #	ebook-convert "$book$part.md" "$book$part.epub" --formatting-type markdown
-	zip -9 -r "$book$part.cbz" "$book$part"*"_l.jpg" "$book$part"*"_r.jpg"
+	zip -9 -r "$book$part.cbz" "${pages[@]}"
 	ebook-convert "$book$part.cbz" "$book$part.epub" --despeckle --disable-trim --keep-aspect-ratio
 	popd > /dev/null
 	mv "$TMPDIR/$book$part.cbz" "${f%.pdf}.cbz"
