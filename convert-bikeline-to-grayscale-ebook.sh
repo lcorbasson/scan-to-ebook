@@ -17,6 +17,7 @@ for f in "$book "*".pdf"; do
 	part="${part%.pdf}"
 	part="${part%% - *}"
 	part="${part%% – *}"
+	echo "Working on $book, part $part:"
 
 	# Create a temp dir
 	tmpdir="$(mktemp -d "${0##*/}.$book$part.XXXXXX")"
@@ -28,6 +29,7 @@ for f in "$book "*".pdf"; do
 	pushd "$tmpdir" > /dev/null
 	pages=()
 	for i in "$book$part"*".jpg"; do
+		echo " - page $i"
 
 		# Put the pages horizontally for easier manipulation
 		mogrify -colorspace Gray -rotate 270 "$i"
@@ -45,7 +47,7 @@ for f in "$book "*".pdf"; do
 #			it="${i%.jpg}_$t.jpg"
 #			gm convert "$i" -crop "${tw}x100%" "$it"
 #			mogrify -rotate 90 "$it"
-#			jpegoptim -s "$it"
+#			jpegoptim -q -s "$it"
 #		done
 
 		# Adapt the pages to the e-book screens by cutting pages in two
@@ -55,16 +57,17 @@ for f in "$book "*".pdf"; do
 		convert "$i" -gravity East -crop 70%x100%+0+0 "$ir"
 
 		# Optimize JPEGs
-		jpegoptim -s "$i" "$il" "$ir"
+		jpegoptim -q -s "$i" "$il" "$ir"
 
 		# Add them to the output pages
 		pages+=("$il" "$ir")
 	done
 
 	# Generate a grayscale PDF version
+	echo " - assembling the PDF e-book"
 	img2pdf --output "$book$part.pdf" "${pages[@]}"
 	# OCR it
-	ocrmypdf --language deu+fra+nld+eng --output-type pdf --sidecar --deskew --clean "$book$part.pdf" "$book$part.ocr.pdf"
+	ocrmypdf -q --language deu+fra+nld+eng --output-type pdf --sidecar --deskew --clean "$book$part.pdf" "$book$part.ocr.pdf"
 	ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$book$part.ebook.pdf" "$book$part.ocr.pdf"
 
 	# Generate an EPUB version via Markdown
@@ -86,5 +89,6 @@ for f in "$book "*".pdf"; do
 
 	# Cleanup
 	rm -r "$tmpdir"
+	echo
 done
 
