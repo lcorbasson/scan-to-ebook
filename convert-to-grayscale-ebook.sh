@@ -1,9 +1,13 @@
 #!/bin/bash
 set -eE
 
-TMPDIR="$(mktemp -d "${0##*/}.XXXXXX")"
-
+if [ $# -lt 1 ]; then
+	echo "Usage: $0 BOOK_ROOT" >&2
+	exit 1
+fi
 book="$1"
+
+TMPDIR="$(mktemp -d "${0##*/}.XXXXXX")"
 
 for f in "$book "*".pdf"; do
 	if [ "${f%.ebook.pdf}" != "$f" ]; then
@@ -13,6 +17,7 @@ for f in "$book "*".pdf"; do
 	part="${f#$book }"
 	part="${part%.pdf}"
 	part="${part%% - *}"
+	part="${part%% – *}"
 
 	# Extract the scans
 	pdfimages -all "$f" "$TMPDIR/$book$part"
