@@ -6,6 +6,10 @@ TMPDIR="$(mktemp -d "${0##*/}.XXXXXX")"
 book="$1"
 
 for f in "$book "*".pdf"; do
+	if [ "${f%.ebook.pdf}" != "$f" ]; then
+		continue
+	fi
+
 	part="${f#$book }"
 	part="${part%.pdf}"
 	part="${part%% - *}"
@@ -42,16 +46,14 @@ for f in "$book "*".pdf"; do
 		convert "$i" -gravity West -crop 70%x100%+0+0 "$il"
 		convert "$i" -gravity East -crop 70%x100%+0+0 "$ir"
 
-		# Put the resulting pages back in vertical format
-		mogrify -rotate 90 "$il"
-		mogrify -rotate 90 "$ir"
-
 		# Add them to the output pages
 		pages+=("$il" "$ir")
 	done
 
 	# Generate a grayscale PDF version
-	img2pdf -o "$book$part.pdf" "${pages[@]}"
+	img2pdf --output "$book$part.pdf" "${pages[@]}"
+	# OCR it
+	ocrmypdf --language deu --output-type pdf --sidecar --deskew --clean "$book$part.pdf" "$book$part.pdf"
 
 	# Generate an EPUB version via Markdown
 #	for i in "${pages[@]}"; do
